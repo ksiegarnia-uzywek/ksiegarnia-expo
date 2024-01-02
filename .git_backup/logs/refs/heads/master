@@ -1,0 +1,6 @@
+0000000000000000000000000000000000000000 07e9f556a0ad1b6dbce3c8e328a498889f35ac02 Kacper Machaj <kacpermachay@gmail.com> 1703798075 +0100	commit (initial): Initial commit
+07e9f556a0ad1b6dbce3c8e328a498889f35ac02 27a7f98ed8dc14da659d37fcb8bc00db0eb0a53e Kacper Machaj <kacpermachay@gmail.com> 1703799019 +0100	commit: init frontend
+27a7f98ed8dc14da659d37fcb8bc00db0eb0a53e fc120a0fcabe1a8cadaf065470a6278e7953be06 Kacper Machaj <kacpermachay@gmail.com> 1703856379 +0100	commit: response frontend
+fc120a0fcabe1a8cadaf065470a6278e7953be06 f7e32e67d5e4a48c719e21184d67ee43d62965fc Kacper Machaj <kacpermachay@gmail.com> 1703858476 +0100	commit: drawer
+f7e32e67d5e4a48c719e21184d67ee43d62965fc 48e6fbacd412e2431d242e36fc35955dcc44049b Kacper Machaj <kacpermachay@gmail.com> 1703878699 +0100	commit: wyswietlanie odpowiedzi
+48e6fbacd412e2431d242e36fc35955dcc44049b 68a2519ae861c48547e7f2b43107b7017922bb38 Kacper Machaj <kacpermachay@gmail.com> 1704188278 +0100	commit: deploy
