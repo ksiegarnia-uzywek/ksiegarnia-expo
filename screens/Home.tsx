@@ -7,7 +7,7 @@ const Home = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const onScan = () => {
-    navigation.navigate(AppRoutes.SCANNER);
+    navigation.navigate(AppRoutes.CAMERASCREEN);
   };
 
   return (

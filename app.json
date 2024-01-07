@@ -31,6 +31,14 @@
         "projectId": "5b90ffb5-b797-462b-854c-b4bb9cf43a42"
       }
     },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
+        }
+      ]
+    ],
     "owner": "machayka"
   }
 }
