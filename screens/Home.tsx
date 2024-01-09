@@ -7,6 +7,7 @@ const Home = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const onScan = () => {
+    // navigation.navigate(AppRoutes.SCANNER); zastąpione przez camerascreen
     navigation.navigate(AppRoutes.CAMERASCREEN);
   };
 
