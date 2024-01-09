@@ -1,5 +1,3 @@
-import { Dispatch } from "react";
-
 export interface onCallGPTResponse {
   response: string;
   data: { bookInfo: any; prices: any };
@@ -26,22 +24,15 @@ async function onCallGPT(isbn: string): Promise<onCallGPTResponse> {
 
 interface HandleBarCodeScannedProps {
   isbn: string;
-  setIsbn: Dispatch<React.SetStateAction<string>>;
-  setScanned: Dispatch<React.SetStateAction<boolean>>;
   onSuccess: (response: onCallGPTResponse) => void;
   onError: (error: Error) => void;
 }
 
 const handleBarCodeScanned = async ({
   isbn,
-  setIsbn,
-  setScanned,
   onSuccess,
   onError,
 }: HandleBarCodeScannedProps) => {
-  setScanned(true);
-  setIsbn(isbn);
-
   try {
     const result = await onCallGPT(isbn);
     onSuccess(result);

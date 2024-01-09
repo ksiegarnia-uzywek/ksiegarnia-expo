@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Video } from "expo-av";
 import * as ImagePicker from "expo-image-picker";
+import * as MediaLibrary from "expo-media-library";
 import {
   DocumentData,
   addDoc,
@@ -8,18 +9,27 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
+  Button,
   FlatList,
   Image,
   Platform,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
+import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { Camera } from "expo-camera";
 import { db, storage } from "../../firebaseConfig";
-import CameraComponent from "./CameraComponent";
+import { AppRoutes, RootStackParamList } from "../../routing/routing.model";
+import handleBarCodeScanned, {
+  onCallGPTResponse,
+} from "../../utils/handleBarCodeScanned";
 import { Uploading } from "./components/Uploading";
 import { UploadingAndroid } from "./components/UploadingAndroid";
 
@@ -29,7 +39,15 @@ export default function CameraScreen() {
   const [progress, setProgress] = useState(0);
   const [files, setFiles] = useState<DocumentData[]>([]);
 
-  const [camera, setCamera] = useState(false);
+  const [camera, setCamera] = useState(true);
+
+  const [type, setType] = useState(ImagePicker.CameraType.back);
+  const [permission, requestPermission] = Camera.useCameraPermissions();
+  const cameraRef = useRef(null);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "files"), (snapshot) => {
@@ -65,6 +83,33 @@ export default function CameraScreen() {
     }
   }
 
+  async function takeAndSavePhoto() {
+    if (cameraRef.current) {
+      try {
+        // Zrób zdjęcie
+        const photo = await cameraRef.current.takePictureAsync();
+
+        // Poproś o uprawnienia do zapisu w galerii (jeśli jeszcze nie przyznane)
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        if (status === "granted") {
+          // Zapisz zdjęcie w galerii
+          const asset = await MediaLibrary.createAssetAsync(photo.uri);
+          openCamera();
+          setImage(photo.uri);
+          uploadImage(photo.uri, "image");
+        } else {
+          Alert.alert(
+            "Permission needed",
+            "Please grant gallery permission to save photos."
+          );
+        }
+      } catch (err) {
+        console.error(err);
+        Alert.alert("Error", "Failed to take photo");
+      }
+    }
+  }
+
   async function uploadImage(uri: any, fileType: any) {
     const response = await fetch(uri);
     const blob = await response.blob();
@@ -96,6 +141,16 @@ export default function CameraScreen() {
     );
   }
 
+  const onSuccess = (response: onCallGPTResponse) => {
+    console.log(`Response from chat GPT: ${JSON.stringify(response)}`);
+    setIsLoading(false);
+    navigation.navigate(AppRoutes.RESPONSE, { response: response });
+  };
+
+  const onError = (error: Error) => {
+    alert(`Error: ${error.message}`);
+  };
+
   async function saveRecord(fileType: any, url: any, createdAt: any) {
     try {
       const docRef = await addDoc(collection(db, "files"), {
@@ -121,7 +176,7 @@ export default function CameraScreen() {
                 content: [
                   {
                     type: "text",
-                    text: "Odczytaj kod ISBN",
+                    text: "Odczytaj kod ISBN. Zwróc tylko cyfry.",
                   },
                   {
                     type: "image_url",
@@ -144,6 +199,12 @@ export default function CameraScreen() {
         const message = data.choices[0].message?.content;
         console.log("Odpowiedź od OpenAI: ", message);
         alert(`Odpowiedź od OpenAI: ${message}`);
+        setIsLoading(true);
+        handleBarCodeScanned({
+          isbn: message,
+          onSuccess,
+          onError,
+        });
       } else {
         console.error("Nie otrzymano odpowiedzi");
         alert("Nie otrzymano odpowiedzi");
@@ -153,10 +214,38 @@ export default function CameraScreen() {
     }
   }
 
+  if (!permission) {
+    // Camera permissions are still loading
+    return <View />;
+  }
+
+  if (!permission.granted) {
+    // Camera permissions are not granted yet
+    return (
+      <View style={styles.container}>
+        <Text style={{ textAlign: "center" }}>
+          We need your permission to show the camera
+        </Text>
+        <Button onPress={requestPermission} title="grant permission" />
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
       {camera ? (
-        <CameraComponent></CameraComponent>
+        <View style={styles.container}>
+          <Camera style={styles.camera} type={type} ref={cameraRef}>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={takeAndSavePhoto}
+              >
+                <Text style={styles.text}>Take Photo</Text>
+              </TouchableOpacity>
+            </View>
+          </Camera>
+        </View>
       ) : (
         <FlatList
           data={files}
@@ -232,13 +321,47 @@ export default function CameraScreen() {
       >
         <Ionicons name="camera" size={24} color="white" />
       </TouchableOpacity>
+      {isLoading && (
+        <View style={styles.spinnerContainer}>
+          <ActivityIndicator size="large" color="#007bff" />
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+  },
   camera: {
-    flex: 5,
-    borderRadius: 20,
+    flex: 1,
+  },
+  buttonContainer: {
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: "transparent",
+    margin: 64,
+  },
+  button: {
+    flex: 1,
+    alignSelf: "flex-end",
+    alignItems: "center",
+  },
+  text: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "white",
+  },
+  spinnerContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
 });
