@@ -4,8 +4,7 @@ export interface onCallGPTResponse {
 }
 
 async function onCallGPT(isbn: string): Promise<onCallGPTResponse> {
-  const functionUrl =
-    "https://us-central1-ksiegarniauzywek.cloudfunctions.net/onCallGPT";
+  const functionUrl = "url funkcji";
 
   try {
     const response = await fetch(functionUrl, {

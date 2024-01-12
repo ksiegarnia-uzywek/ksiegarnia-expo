@@ -165,8 +165,7 @@ export default function CameraScreen() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization:
-              "Bearer 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",
+            Authorization: "Bearer <API key>",
           },
           body: JSON.stringify({
             model: "gpt-4-vision-preview",

@@ -3,7 +3,7 @@
 // }
 
 // async function onCallGPT(imageUrl: string): Promise<onCallGPTResponse> {
-//   const functionUrl = "https://oncallprocessimage-bt3re52v3q-uc.a.run.app";
+//   const functionUrl = "url funkcji";
 
 //   try {
 //     const response = await fetch(functionUrl, {
